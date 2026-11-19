@@ -2,7 +2,7 @@
 
 Install Node.js Dependencies
 
-Initialize `package.json` and install the required packages (`mysql2`, `express-rate-limit`, `cookie-parser`, `helmet`, plus core server and auth libraries) in both backend servers:
+Initialize `package.json` and install the required packages (`mysql2`, `express-rate-limit`, `cookie-parser`, `helmet`, etc)...
 
 ### Auth Server (`port 4000`)
 ```powershell
@@ -24,7 +24,6 @@ npm install express mysql2 dotenv cors helmet cookie-parser express-rate-limit j
 
 ## Verify Database Connectivity
 
-Run a quick check from both server directories in PowerShell to confirm Node.js can query MariaDB:
 
 ```powershell
 # From auth-server/
@@ -34,4 +33,8 @@ node -e "const db = require('./db'); db.query('SELECT * FROM roles').then(([rows
 node -e "const db = require('./db'); db.query('SHOW TABLES').then(([rows]) => { console.log(rows); process.exit(0); }).catch(err => { console.error(err); process.exit(1); });"
 ```
 
-Once both commands return your seeded roles and table list without errors, the database layer is ready for Express routes, middleware, and controllers.
+Live-Test:
+
+npm --prefix blog-platform/auth-server start
+npm --prefix blog-platform/blog-server start
+npm --prefix blog-platform/frontend run dev
