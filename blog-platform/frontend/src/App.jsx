@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   deletePost,
   fetchMyPosts,
@@ -32,9 +32,11 @@ export default function App() {
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [status, setStatus] = useState(DEFAULT_STATUS);
   const [refreshingToken, setRefreshingToken] = useState(false);
+  const toastRef = useRef(null);
 
   const updateStatus = useCallback((message, isError = false) => {
     setStatus({ message, isError });
+    toastRef.current?.show(message);
   }, []);
 
   const loadPosts = useCallback(async (targetView) => {
@@ -118,6 +120,7 @@ export default function App() {
   };
 
   const handleDelete = async (postId) => {
+    if (!window.confirm(`Delete dispatch #${postId}?`)) return;
     try {
       await deletePost(postId);
       if (editingPost && editingPost.id === postId) {
@@ -156,29 +159,6 @@ export default function App() {
                 Decoupled micro-blog platform with isolated JWT authentication and stateless post
                 management.
               </p>
-            </div>
-            <div className="hero-cta-subgrid">
-              <button
-                type="button"
-                className="bento-cta-card"
-                onClick={() => {
-                  handleSelectView('all');
-                  document.getElementById('feed-section')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                <span className="cta-card-label">Browse Public Feed</span>
-                <span className="arrow-box-lg">-&gt;</span>
-              </button>
-              <button
-                type="button"
-                className="bento-cta-card"
-                onClick={scrollToWorkspace}
-              >
-                <span className="cta-card-label">
-                  {user ? 'Open Workspace' : 'Account Access'}
-                </span>
-                <span className="arrow-box-lg">-&gt;</span>
-              </button>
             </div>
           </article>
 
@@ -229,7 +209,6 @@ export default function App() {
               disabled={loading}
             >
               <span>{loading ? 'Loading...' : 'Refresh Feed'}</span>
-              <span>-&gt;</span>
             </button>
           </div>
 
@@ -330,6 +309,11 @@ export default function App() {
         onClose={() => setSelectedPostId(null)}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <sakuga-toast
+        ref={toastRef}
+        className={status.isError ? 'sakuga-toast-error' : ''}
       />
     </div>
   );

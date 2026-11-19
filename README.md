@@ -38,3 +38,15 @@ Live-Test:
 npm --prefix blog-platform/auth-server start
 npm --prefix blog-platform/blog-server start
 npm --prefix blog-platform/frontend run dev
+
+---
+
+## Demo Accounts (RBAC Testing)
+
+Register these accounts via the **Register** tab (the `users` table starts empty; only `roles` is pre-seeded):
+
+| Role | Email | Username | Password |
+| :--- | :--- | :--- | :--- |
+| **reader** | `reader@blog.test` | `reader1` | `password123` |
+| **author** | `author@blog.test` | `author1` | `password123` |
+| **admin** | `admin@blog.test` | `admin1` | `password123` |

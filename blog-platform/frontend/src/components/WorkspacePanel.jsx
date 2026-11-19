@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPost, loginUser, registerUser, updatePost } from '../api/client';
 
 export default function WorkspacePanel({
@@ -22,6 +22,19 @@ export default function WorkspacePanel({
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const tabsRef = useRef(null);
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el || user) return undefined;
+    const handleTabChange = (e) => {
+      const nextTab = e.detail?.value === 'register' ? 'register' : 'login';
+      setTab(nextTab);
+      setFeedback(null);
+    };
+    el.addEventListener('change', handleTabChange);
+    return () => el.removeEventListener('change', handleTabChange);
+  }, [user]);
 
   useEffect(() => {
     if (editingPost) {
@@ -106,28 +119,14 @@ export default function WorkspacePanel({
     return (
       <aside className="hero-interactive-card" id="interactive-workspace">
         <div className="panel-header-tabbed">
-          <div className="panel-tabs-pill">
-            <button
-              type="button"
-              className={`panel-tab-btn${tab === 'login' ? ' active' : ''}`}
-              onClick={() => {
-                setTab('login');
-                setFeedback(null);
-              }}
-            >
-              Log In
-            </button>
-            <button
-              type="button"
-              className={`panel-tab-btn${tab === 'register' ? ' active' : ''}`}
-              onClick={() => {
-                setTab('register');
-                setFeedback(null);
-              }}
-            >
-              Register
-            </button>
-          </div>
+          <sakuga-tabs
+            ref={tabsRef}
+            label="Account Access"
+            selected={tab === 'register' ? '1' : '0'}
+          >
+            <option value="login">Log In</option>
+            <option value="register">Register</option>
+          </sakuga-tabs>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
             Auth Server :4000
           </span>
@@ -171,7 +170,6 @@ export default function WorkspacePanel({
             </div>
             <button type="submit" className="btn-bento-primary" disabled={submitting}>
               <span>{submitting ? 'Signing In...' : 'Sign In to Account'}</span>
-              <span>-&gt;</span>
             </button>
           </form>
         ) : (
@@ -236,7 +234,6 @@ export default function WorkspacePanel({
             </div>
             <button type="submit" className="btn-bento-primary" disabled={submitting}>
               <span>{submitting ? 'Registering...' : 'Register Account'}</span>
-              <span>-&gt;</span>
             </button>
           </form>
         )}
@@ -333,7 +330,6 @@ export default function WorkspacePanel({
                 ? `Update Dispatch #${editingPost.id}`
                 : 'Publish to Blog API (:5000)'}
           </span>
-          <span>-&gt;</span>
         </button>
       </form>
     </aside>

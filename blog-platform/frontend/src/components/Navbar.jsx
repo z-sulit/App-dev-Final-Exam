@@ -39,15 +39,17 @@ export default function Navbar({
               My Dispatches
             </button>
           </li>
-          <li>
-            <button
-              type="button"
-              className="nav-link-btn"
-              onClick={onScrollToWorkspace}
-            >
-              Create Post
-            </button>
-          </li>
+          {user?.role !== 'reader' && (
+            <li>
+              <button
+                type="button"
+                className="nav-link-btn"
+                onClick={onScrollToWorkspace}
+              >
+                Create Post
+              </button>
+            </li>
+          )}
         </ul>
 
         <div className="nav-right-slot">
@@ -63,7 +65,6 @@ export default function Navbar({
             onClick={user ? onLogout : onScrollToWorkspace}
           >
             <span>{user ? 'Log Out' : 'Log In'}</span>
-            <span className="arrow-box-sm">-&gt;</span>
           </button>
         </div>
       </div>
