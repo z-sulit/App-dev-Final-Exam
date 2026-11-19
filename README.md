@@ -22,7 +22,7 @@ npm install express mysql2 dotenv cors helmet cookie-parser express-rate-limit j
 
 ---
 
-## 6. Verify Database Connectivity
+## Verify Database Connectivity
 
 Run a quick check from both server directories in PowerShell to confirm Node.js can query MariaDB:
 
