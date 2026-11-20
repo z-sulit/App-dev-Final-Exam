@@ -50,3 +50,8 @@ Registered accounts for basis:
 | **reader** | `reader@blog.test` | `reader1` | `password123` |
 | **author** | `author@blog.test` | `author1` | `password123` |
 | **admin** | `admin@blog.test` | `admin1` | `password123` |
+
+
+## MySQL Issue
+
+W + R -> type services.msc to check for running MySQL servers. Close the running server then run the one in the XAMPP port.
