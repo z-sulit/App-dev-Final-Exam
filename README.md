@@ -33,7 +33,7 @@ node -e "const db = require('./db'); db.query('SELECT * FROM roles').then(([rows
 node -e "const db = require('./db'); db.query('SHOW TABLES').then(([rows]) => { console.log(rows); process.exit(0); }).catch(err => { console.error(err); process.exit(1); });"
 ```
 
-Live-Test:
+## Live-Test:
 
 npm --prefix blog-platform/auth-server start
 npm --prefix blog-platform/blog-server start
@@ -41,9 +41,9 @@ npm --prefix blog-platform/frontend run dev
 
 ---
 
-## Demo Accounts (RBAC Testing)
+## Demo Accounts
 
-Register these accounts via the **Register** tab (the `users` table starts empty; only `roles` is pre-seeded):
+Registered accounts for basis:
 
 | Role | Email | Username | Password |
 | :--- | :--- | :--- | :--- |

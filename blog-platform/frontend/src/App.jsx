@@ -7,6 +7,7 @@ import {
   logoutUser,
   refreshAccessToken,
 } from './api/client';
+import EntryLoader from './components/EntryLoader';
 import Navbar from './components/Navbar';
 import PostDetailModal from './components/PostDetailModal';
 import StatusBar from './components/StatusBar';
@@ -32,6 +33,7 @@ export default function App() {
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [status, setStatus] = useState(DEFAULT_STATUS);
   const [refreshingToken, setRefreshingToken] = useState(false);
+  const [showEntryLoader, setShowEntryLoader] = useState(true);
   const toastRef = useRef(null);
 
   const updateStatus = useCallback((message, isError = false) => {
@@ -77,7 +79,7 @@ export default function App() {
     const el = document.getElementById('interactive-workspace');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const firstInput = el.querySelector('input, textarea');
+      const firstInput = el.querySelector('sakuga-input, input, textarea');
       if (firstInput) firstInput.focus();
     }
   }, []);
@@ -135,6 +137,8 @@ export default function App() {
 
   return (
     <div id="top">
+      {showEntryLoader && <EntryLoader onDone={() => setShowEntryLoader(false)} />}
+
       <StatusBar
         status={status}
         user={user}

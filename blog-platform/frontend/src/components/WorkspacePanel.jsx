@@ -1,5 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPost, loginUser, registerUser, updatePost } from '../api/client';
+import SakugaInput from './SakugaInput';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function triggerTextareaFocusFx(el) {
+  const fx = window.SakugaFX;
+  if (!fx || !el) return;
+  const c = fx.at(el, 1, 0);
+  fx.ticks(c.x - 6, c.y - 4, { dir: -1.05, n: 3, r: 5, len: 17, fan: 0.36, life: 0.5 });
+}
+
+function triggerTextareaInputFx(el) {
+  const fx = window.SakugaFX;
+  if (!fx || !el) return;
+  const c = fx.at(el, 0, 0);
+  const pos = el.selectionStart ?? el.value.length;
+  const lines = el.value.slice(0, pos).split('\n');
+  const currentLine = lines[lines.length - 1] || '';
+  const x = c.x + 18 + Math.min(Math.max(c.w - 38, 12), currentLine.length * 8.5);
+  const y = c.y + 18 + Math.min(Math.max(c.h - 28, 12), (lines.length - 1) * 22);
+  fx.puff(x, y + 6, { size: fx.rnd(4, 6), n: 2, vy: -22, vx: fx.rnd(-10, 10), life: 0.4 });
+  if (Math.random() < 0.35) {
+    fx.shards(x, y + 2, { n: 2, speed: 110, size: 3, life: 0.5 });
+  }
+}
 
 export default function WorkspacePanel({
   user,
@@ -49,10 +74,17 @@ export default function WorkspacePanel({
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const cleanUsername = loginUsername.trim();
+    if (!cleanUsername || !loginPassword) {
+      const msg = 'Username and password are required';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
     setSubmitting(true);
     setFeedback(null);
     try {
-      const data = await loginUser({ username: loginUsername, password: loginPassword });
+      const data = await loginUser({ username: cleanUsername, password: loginPassword });
       setLoginPassword('');
       onAuthSuccess(data.user);
       onStatus(`Signed in as ${data.user.username} (${data.user.role})`, false);
@@ -66,16 +98,36 @@ export default function WorkspacePanel({
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    const cleanEmail = regEmail.trim();
+    const cleanUsername = regUsername.trim();
+    if (!EMAIL_RE.test(cleanEmail)) {
+      const msg = 'Valid email is required';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
+    if (!cleanUsername) {
+      const msg = 'Username is required';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
+    if (regPassword.length < 6) {
+      const msg = 'Password must be at least 6 characters';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
     setSubmitting(true);
     setFeedback(null);
     try {
       await registerUser({
-        email: regEmail,
-        username: regUsername,
+        email: cleanEmail,
+        username: cleanUsername,
         password: regPassword,
         role: regRole,
       });
-      setLoginUsername(regUsername);
+      setLoginUsername(cleanUsername);
       setRegEmail('');
       setRegUsername('');
       setRegPassword('');
@@ -93,15 +145,29 @@ export default function WorkspacePanel({
 
   const handleSavePost = async (e) => {
     e.preventDefault();
+    const cleanTitle = title.trim();
+    const cleanContent = content.trim();
+    if (!cleanTitle || cleanTitle.length > 255) {
+      const msg = 'Headline is required (max 255 characters)';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
+    if (!cleanContent) {
+      const msg = 'Dispatch body is required';
+      setFeedback({ text: msg, isError: true });
+      onStatus(msg, true);
+      return;
+    }
     setSubmitting(true);
     setFeedback(null);
     try {
       if (editingPost) {
-        await updatePost(editingPost.id, { title, content });
+        await updatePost(editingPost.id, { title: cleanTitle, content: cleanContent });
         onStatus(`Updated dispatch #${editingPost.id}`, false);
         onCancelEdit();
       } else {
-        const created = await createPost({ title, content });
+        const created = await createPost({ title: cleanTitle, content: cleanContent });
         setTitle('');
         setContent('');
         onStatus(`Published dispatch #${created.id}`, false);
@@ -144,28 +210,32 @@ export default function WorkspacePanel({
               <label className="form-label" htmlFor="login-username">
                 Username or Email
               </label>
-              <input
-                type="text"
+              <SakugaInput
                 id="login-username"
-                className="form-input"
-                required
+                name="username"
+                type="text"
+                label="Username or Email"
+                autocomplete="username"
                 placeholder="e.g. author1"
                 value={loginUsername}
-                onChange={(e) => setLoginUsername(e.target.value)}
+                onChange={setLoginUsername}
+                disabled={submitting}
               />
             </div>
             <div className="form-field">
               <label className="form-label" htmlFor="login-password">
                 Password
               </label>
-              <input
-                type="password"
+              <SakugaInput
                 id="login-password"
-                className="form-input"
-                required
+                name="password"
+                type="password"
+                label="Password"
+                autocomplete="current-password"
                 placeholder="Enter your password"
                 value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
+                onChange={setLoginPassword}
+                disabled={submitting}
               />
             </div>
             <button type="submit" className="btn-bento-primary" disabled={submitting}>
@@ -178,43 +248,48 @@ export default function WorkspacePanel({
               <label className="form-label" htmlFor="reg-email">
                 Email
               </label>
-              <input
-                type="email"
+              <SakugaInput
                 id="reg-email"
-                className="form-input"
-                required
+                name="email"
+                type="email"
+                label="Email"
+                autocomplete="email"
                 placeholder="you@example.com"
                 value={regEmail}
-                onChange={(e) => setRegEmail(e.target.value)}
+                onChange={setRegEmail}
+                disabled={submitting}
               />
             </div>
             <div className="form-field">
               <label className="form-label" htmlFor="reg-username">
                 Username
               </label>
-              <input
-                type="text"
+              <SakugaInput
                 id="reg-username"
-                className="form-input"
-                required
+                name="username"
+                type="text"
+                label="Username"
+                autocomplete="username"
                 placeholder="Choose a handle"
                 value={regUsername}
-                onChange={(e) => setRegUsername(e.target.value)}
+                onChange={setRegUsername}
+                disabled={submitting}
               />
             </div>
             <div className="form-field">
               <label className="form-label" htmlFor="reg-password">
                 Password
               </label>
-              <input
-                type="password"
+              <SakugaInput
                 id="reg-password"
-                className="form-input"
-                required
-                minLength={6}
+                name="password"
+                type="password"
+                label="Password"
+                autocomplete="new-password"
                 placeholder="Minimum 6 characters"
                 value={regPassword}
-                onChange={(e) => setRegPassword(e.target.value)}
+                onChange={setRegPassword}
+                disabled={submitting}
               />
             </div>
             <div className="form-field">
@@ -297,15 +372,15 @@ export default function WorkspacePanel({
           <label className="form-label" htmlFor="editor-post-title">
             Headline
           </label>
-          <input
-            type="text"
+          <SakugaInput
             id="editor-post-title"
-            className="form-input"
-            required
-            maxLength={255}
+            name="title"
+            type="text"
+            label="Headline"
             placeholder="Dispatch headline"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={setTitle}
+            disabled={submitting}
           />
         </div>
         <div className="form-field">
@@ -314,12 +389,17 @@ export default function WorkspacePanel({
           </label>
           <textarea
             id="editor-post-content"
-            className="form-input"
+            className="form-input sakuga-textarea"
             rows={4}
             required
             placeholder="Write your dispatch..."
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            disabled={submitting}
+            onFocus={(e) => triggerTextareaFocusFx(e.currentTarget)}
+            onChange={(e) => {
+              setContent(e.target.value);
+              triggerTextareaInputFx(e.currentTarget);
+            }}
           />
         </div>
         <button type="submit" className="btn-bento-primary" disabled={submitting}>
